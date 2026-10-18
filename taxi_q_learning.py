@@ -46,7 +46,17 @@ def choose_action(q_table, state, epsilon, rng):
     return int(rng.choice(best_actions))
 
 
-def train_agent(config, episodes=EPISODES, seed=SEED):
+def apply_action_noise(action, number_of_actions, noise_probability, rng):
+    """With probability p, replace an action with a different valid action."""
+    if noise_probability <= 0 or rng.random() >= noise_probability:
+        return action
+
+    other_actions = [candidate for candidate in range(number_of_actions)
+                     if candidate != action]
+    return int(rng.choice(other_actions))
+
+
+def train_agent(config, episodes=EPISODES, seed=SEED, noise_probability=0.0):
     """Train one tabular Q-learning agent and return its Q-table and rewards."""
     env = gym.make("Taxi-v4", max_episode_steps=MAX_STEPS)
     q_table = np.zeros((env.observation_space.n, env.action_space.n))
@@ -59,7 +69,13 @@ def train_agent(config, episodes=EPISODES, seed=SEED):
         total_reward = 0
 
         for _ in range(MAX_STEPS):
-            action = choose_action(q_table, state, epsilon, rng)
+            intended_action = choose_action(q_table, state, epsilon, rng)
+            action = apply_action_noise(
+                intended_action,
+                env.action_space.n,
+                noise_probability,
+                rng,
+            )
             next_state, reward, terminated, truncated, _ = env.step(action)
             done = terminated or truncated
 
@@ -82,19 +98,26 @@ def train_agent(config, episodes=EPISODES, seed=SEED):
     return q_table, rewards
 
 
-def evaluate_agent(q_table, episodes=100, seed=10000):
+def evaluate_agent(q_table, episodes=100, seed=10000, noise_probability=0.0):
     """Evaluate greedily with exploration disabled."""
     env = gym.make("Taxi-v4", max_episode_steps=MAX_STEPS)
     rewards = []
     steps_list = []
     successes = 0
+    rng = np.random.default_rng(seed)
 
     for episode in range(episodes):
         state, _ = env.reset(seed=seed + episode)
         total_reward = 0
 
         for step in range(1, MAX_STEPS + 1):
-            action = int(np.argmax(q_table[state]))
+            intended_action = int(np.argmax(q_table[state]))
+            action = apply_action_noise(
+                intended_action,
+                env.action_space.n,
+                noise_probability,
+                rng,
+            )
             state, reward, terminated, truncated, _ = env.step(action)
             total_reward += reward
 
@@ -148,6 +171,46 @@ def plot_comparison(runs, title, filename):
     plt.tight_layout()
     plt.savefig(OUTPUT_DIR / filename, dpi=200)
     plt.close()
+
+
+def plot_policy_robustness(trained_results, original_policy_results):
+    """Compare noise-trained agents with the original policy under noise."""
+    labels = ["p = 0", "p = 0.10", "p = 0.25"]
+    trained_rewards = [result["mean_reward"] for result in trained_results]
+    original_rewards = [result["mean_reward"]
+                        for result in original_policy_results]
+    x = np.arange(len(labels))
+    width = 0.36
+
+    plt.figure(figsize=(9, 5.5))
+    plt.bar(x - width / 2, trained_rewards, width,
+            label="Policy trained at this noise level")
+    plt.bar(x + width / 2, original_rewards, width,
+            label="Original p = 0 policy")
+    plt.xticks(x, labels)
+    plt.xlabel("Action Noise Probability")
+    plt.ylabel("Mean Evaluation Reward")
+    plt.title("Policy Robustness Under Action Noise")
+    plt.grid(axis="y", alpha=0.25)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(OUTPUT_DIR / "policy_robustness.png", dpi=200)
+    plt.close()
+
+
+def save_stochastic_summary(rows):
+    """Save the stochastic-environment evaluation results."""
+    fields = [
+        "noise_probability", "evaluation_type", "training_episodes",
+        "evaluation_episodes", "mean_reward", "success_rate", "mean_steps",
+    ]
+    with open(OUTPUT_DIR / "stochastic_summary.csv", "w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    with open(OUTPUT_DIR / "stochastic_summary.json", "w") as file:
+        json.dump(rows, file, indent=2)
 
 
 def record_video(q_table, filename="best_agent.mp4", seed=2026):
@@ -258,6 +321,76 @@ def main():
         "Effect of Starting Exploration Rate on Taxi-v4 Q-learning",
         "epsilon_comparison.png",
     )
+
+    # Extra-credit stochastic environment experiment. The selected action is
+    # replaced by a different action with probability p.
+    noise_levels = [0.0, 0.10, 0.25]
+    noise_runs = {"p = 0": baseline_rewards}
+    noise_trained_results = [baseline_metrics]
+    original_policy_results = [baseline_metrics]
+    stochastic_rows = [{
+        "noise_probability": 0.0,
+        "evaluation_type": "trained and evaluated at matching noise",
+        "training_episodes": EPISODES,
+        "evaluation_episodes": baseline_metrics["episodes"],
+        "mean_reward": baseline_metrics["mean_reward"],
+        "success_rate": baseline_metrics["success_rate"],
+        "mean_steps": baseline_metrics["mean_steps"],
+    }, {
+        "noise_probability": 0.0,
+        "evaluation_type": "original p=0 policy evaluated under noise",
+        "training_episodes": EPISODES,
+        "evaluation_episodes": baseline_metrics["episodes"],
+        "mean_reward": baseline_metrics["mean_reward"],
+        "success_rate": baseline_metrics["success_rate"],
+        "mean_steps": baseline_metrics["mean_steps"],
+    }]
+
+    for noise_probability in noise_levels[1:]:
+        print(f"Training Stochastic environment: p={noise_probability}")
+        noisy_q, noisy_rewards = train_agent(
+            BASELINE.copy(), noise_probability=noise_probability
+        )
+        matching_metrics = evaluate_agent(
+            noisy_q, noise_probability=noise_probability
+        )
+        original_metrics = evaluate_agent(
+            baseline_q, noise_probability=noise_probability
+        )
+        noise_runs[f"p = {noise_probability}"] = noisy_rewards
+        noise_trained_results.append(matching_metrics)
+        original_policy_results.append(original_metrics)
+
+        for evaluation_type, metrics in [
+            ("trained and evaluated at matching noise", matching_metrics),
+            ("original p=0 policy evaluated under noise", original_metrics),
+        ]:
+            stochastic_rows.append({
+                "noise_probability": noise_probability,
+                "evaluation_type": evaluation_type,
+                "training_episodes": EPISODES,
+                "evaluation_episodes": metrics["episodes"],
+                "mean_reward": metrics["mean_reward"],
+                "success_rate": metrics["success_rate"],
+                "mean_steps": metrics["mean_steps"],
+            })
+
+        print(
+            f"  matching-noise reward={matching_metrics['mean_reward']:.2f}, "
+            f"success={100 * matching_metrics['success_rate']:.1f}%"
+        )
+        print(
+            f"  original-policy reward={original_metrics['mean_reward']:.2f}, "
+            f"success={100 * original_metrics['success_rate']:.1f}%"
+        )
+
+    plot_comparison(
+        noise_runs,
+        "Effect of Action Noise on Taxi-v4 Q-learning",
+        "stochastic_training_comparison.png",
+    )
+    plot_policy_robustness(noise_trained_results, original_policy_results)
+    save_stochastic_summary(stochastic_rows)
 
     # Select by mean reward, then success rate, then fewer steps.
     best_name, best_data = max(
