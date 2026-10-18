@@ -1,0 +1,11 @@
+experiment,setting,alpha,gamma,epsilon_start,epsilon_decay,training_episodes,evaluation_episodes,mean_reward,success_rate,mean_steps
+Baseline,baseline,0.5,0.95,1.0,0.9995,15000,100,8.05,1.0,12.95
+Learning rate,alpha=0.1,0.1,0.95,1.0,0.9995,15000,100,8.05,1.0,12.95
+Learning rate,alpha=0.5,0.5,0.95,1.0,0.9995,15000,100,8.05,1.0,12.95
+Learning rate,alpha=0.9,0.9,0.95,1.0,0.9995,15000,100,8.05,1.0,12.95
+Discount factor,gamma=0.5,0.5,0.5,1.0,0.9995,15000,100,8.05,1.0,12.95
+Discount factor,gamma=0.9,0.5,0.9,1.0,0.9995,15000,100,8.05,1.0,12.95
+Discount factor,gamma=0.99,0.5,0.99,1.0,0.9995,15000,100,8.05,1.0,12.95
+Starting epsilon,epsilon=0.2,0.5,0.95,0.2,0.9995,15000,100,7.99,1.0,13.01
+Starting epsilon,epsilon=0.6,0.5,0.95,0.6,0.9995,15000,100,8.05,1.0,12.95
+Starting epsilon,epsilon=1.0,0.5,0.95,1.0,0.9995,15000,100,8.05,1.0,12.95

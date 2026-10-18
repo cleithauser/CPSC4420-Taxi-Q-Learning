@@ -1,0 +1,29 @@
+{
+  "baseline_configuration": {
+    "alpha": 0.5,
+    "gamma": 0.95,
+    "epsilon_start": 1.0,
+    "epsilon_decay": 0.9995,
+    "epsilon_min": 0.05
+  },
+  "baseline_evaluation": {
+    "mean_reward": 8.05,
+    "success_rate": 1.0,
+    "mean_steps": 12.95,
+    "episodes": 100
+  },
+  "best_configuration_name": "Baseline: baseline",
+  "best_configuration": {
+    "alpha": 0.5,
+    "gamma": 0.95,
+    "epsilon_start": 1.0,
+    "epsilon_decay": 0.9995,
+    "epsilon_min": 0.05
+  },
+  "best_evaluation": {
+    "mean_reward": 8.05,
+    "success_rate": 1.0,
+    "mean_steps": 12.95,
+    "episodes": 100
+  }
+}
