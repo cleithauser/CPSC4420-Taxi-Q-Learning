@@ -1,0 +1,56 @@
+[
+  {
+    "noise_probability": 0.0,
+    "evaluation_type": "trained and evaluated at matching noise",
+    "training_episodes": 15000,
+    "evaluation_episodes": 100,
+    "mean_reward": 8.05,
+    "success_rate": 1.0,
+    "mean_steps": 12.95
+  },
+  {
+    "noise_probability": 0.0,
+    "evaluation_type": "original p=0 policy evaluated under noise",
+    "training_episodes": 15000,
+    "evaluation_episodes": 100,
+    "mean_reward": 8.05,
+    "success_rate": 1.0,
+    "mean_steps": 12.95
+  },
+  {
+    "noise_probability": 0.1,
+    "evaluation_type": "trained and evaluated at matching noise",
+    "training_episodes": 15000,
+    "evaluation_episodes": 100,
+    "mean_reward": 1.42,
+    "success_rate": 1.0,
+    "mean_steps": 14.9
+  },
+  {
+    "noise_probability": 0.1,
+    "evaluation_type": "original p=0 policy evaluated under noise",
+    "training_episodes": 15000,
+    "evaluation_episodes": 100,
+    "mean_reward": 1.51,
+    "success_rate": 1.0,
+    "mean_steps": 14.9
+  },
+  {
+    "noise_probability": 0.25,
+    "evaluation_type": "trained and evaluated at matching noise",
+    "training_episodes": 15000,
+    "evaluation_episodes": 100,
+    "mean_reward": -12.66,
+    "success_rate": 1.0,
+    "mean_steps": 19.35
+  },
+  {
+    "noise_probability": 0.25,
+    "evaluation_type": "original p=0 policy evaluated under noise",
+    "training_episodes": 15000,
+    "evaluation_episodes": 100,
+    "mean_reward": -11.85,
+    "success_rate": 1.0,
+    "mean_steps": 19.26
+  }
+]

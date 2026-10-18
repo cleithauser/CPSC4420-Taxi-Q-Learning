@@ -1,0 +1,7 @@
+noise_probability,evaluation_type,training_episodes,evaluation_episodes,mean_reward,success_rate,mean_steps
+0.0,trained and evaluated at matching noise,15000,100,8.05,1.0,12.95
+0.0,original p=0 policy evaluated under noise,15000,100,8.05,1.0,12.95
+0.1,trained and evaluated at matching noise,15000,100,1.42,1.0,14.9
+0.1,original p=0 policy evaluated under noise,15000,100,1.51,1.0,14.9
+0.25,trained and evaluated at matching noise,15000,100,-12.66,1.0,19.35
+0.25,original p=0 policy evaluated under noise,15000,100,-11.85,1.0,19.26
